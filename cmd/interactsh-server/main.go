@@ -132,7 +132,7 @@ func main() {
 	go dnsTcpServer.ListenAndServe(dnsTcpAlive)
 	go dnsUdpServer.ListenAndServe(dnsUdpAlive)
 
-	trimmedDomain := strings.TrimSuffix(serverOptions.Domain, ".")
+	//trimmedDomain := strings.TrimSuffix(serverOptions.Domain, ".")
 
 	//var tlsConfig *tls.Config
 	//switch {
