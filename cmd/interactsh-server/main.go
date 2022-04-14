@@ -135,80 +135,80 @@ func main() {
 
 	trimmedDomain := strings.TrimSuffix(serverOptions.Domain, ".")
 
-	var tlsConfig *tls.Config
-	switch {
-	case cliOptions.CertificatePath != "" && cliOptions.PrivateKeyPath != "":
-		cert, err := tls.LoadX509KeyPair(cliOptions.CertificatePath, cliOptions.PrivateKeyPath)
-		if err != nil {
-			gologger.Error().Msgf("Could not load certs and private key for auto TLS, https will be disabled")
-		}
-		tlsConfig = &tls.Config{
-			InsecureSkipVerify: true,
-			Certificates:       []tls.Certificate{cert},
-			ServerName:         cliOptions.Domain,
-		}
-	case !cliOptions.SkipAcme && cliOptions.Domain != "":
-		acmeManagerTLS, acmeErr := acme.HandleWildcardCertificates(fmt.Sprintf("*.%s", trimmedDomain), serverOptions.Hostmaster, acmeStore, cliOptions.Debug)
-		if acmeErr != nil {
-			gologger.Error().Msgf("An error occurred while applying for an certificate, error: %v", acmeErr)
-			gologger.Error().Msgf("Could not generate certs for auto TLS, https will be disabled")
-		} else {
-			tlsConfig = acmeManagerTLS
-		}
-	}
+	//var tlsConfig *tls.Config
+	//switch {
+	//case cliOptions.CertificatePath != "" && cliOptions.PrivateKeyPath != "":
+	//	cert, err := tls.LoadX509KeyPair(cliOptions.CertificatePath, cliOptions.PrivateKeyPath)
+	//	if err != nil {
+	//		gologger.Error().Msgf("Could not load certs and private key for auto TLS, https will be disabled")
+	//	}
+	//	tlsConfig = &tls.Config{
+	//		InsecureSkipVerify: true,
+	//		Certificates:       []tls.Certificate{cert},
+	//		ServerName:         cliOptions.Domain,
+	//	}
+	//case !cliOptions.SkipAcme && cliOptions.Domain != "":
+	//	acmeManagerTLS, acmeErr := acme.HandleWildcardCertificates(fmt.Sprintf("*.%s", trimmedDomain), serverOptions.Hostmaster, acmeStore, cliOptions.Debug)
+	//	if acmeErr != nil {
+	//		gologger.Error().Msgf("An error occurred while applying for an certificate, error: %v", acmeErr)
+	//		gologger.Error().Msgf("Could not generate certs for auto TLS, https will be disabled")
+	//	} else {
+	//		tlsConfig = acmeManagerTLS
+	//	}
+	//}
 
-	httpServer, err := server.NewHTTPServer(serverOptions)
-	if err != nil {
-		gologger.Fatal().Msgf("Could not create HTTP server")
-	}
-	httpAlive := make(chan bool)
-	httpsAlive := make(chan bool)
-	go httpServer.ListenAndServe(tlsConfig, httpAlive, httpsAlive)
+	//httpServer, err := server.NewHTTPServer(serverOptions)
+	//if err != nil {
+	//	gologger.Fatal().Msgf("Could not create HTTP server")
+	//}
+	//httpAlive := make(chan bool)
+	//httpsAlive := make(chan bool)
+	//go httpServer.ListenAndServe(tlsConfig, httpAlive, httpsAlive)
 
-	smtpServer, err := server.NewSMTPServer(serverOptions)
-	if err != nil {
-		gologger.Fatal().Msgf("Could not create SMTP server")
-	}
-	smtpAlive := make(chan bool)
-	smtpsAlive := make(chan bool)
-	go smtpServer.ListenAndServe(tlsConfig, smtpAlive, smtpsAlive)
+	//smtpServer, err := server.NewSMTPServer(serverOptions)
+	//if err != nil {
+	//	gologger.Fatal().Msgf("Could not create SMTP server")
+	//}
+	//smtpAlive := make(chan bool)
+	//smtpsAlive := make(chan bool)
+	//go smtpServer.ListenAndServe(tlsConfig, smtpAlive, smtpsAlive)
 
-	ldapAlive := make(chan bool)
-	ldapServer, err := server.NewLDAPServer(serverOptions, cliOptions.LdapWithFullLogger)
-	if err != nil {
-		gologger.Fatal().Msgf("Could not create LDAP server")
-	}
-	go ldapServer.ListenAndServe(tlsConfig, ldapAlive)
-	defer ldapServer.Close()
+	//ldapAlive := make(chan bool)
+	//ldapServer, err := server.NewLDAPServer(serverOptions, cliOptions.LdapWithFullLogger)
+	//if err != nil {
+	//	gologger.Fatal().Msgf("Could not create LDAP server")
+	//}
+	//go ldapServer.ListenAndServe(tlsConfig, ldapAlive)
+	//defer ldapServer.Close()
 
-	ftpAlive := make(chan bool)
-	if cliOptions.Ftp {
-		ftpServer, err := server.NewFTPServer(serverOptions)
-		if err != nil {
-			gologger.Fatal().Msgf("Could not create FTP server")
-		}
-		go ftpServer.ListenAndServe(tlsConfig, ftpAlive) //nolint
-	}
+	//ftpAlive := make(chan bool)
+	//if cliOptions.Ftp {
+	//	ftpServer, err := server.NewFTPServer(serverOptions)
+	//	if err != nil {
+	//		gologger.Fatal().Msgf("Could not create FTP server")
+	//	}
+	//	go ftpServer.ListenAndServe(tlsConfig, ftpAlive) //nolint
+	//}
 
-	responderAlive := make(chan bool)
-	if cliOptions.Responder {
-		responderServer, err := server.NewResponderServer(serverOptions)
-		if err != nil {
-			gologger.Fatal().Msgf("Could not create SMB server")
-		}
-		go responderServer.ListenAndServe(responderAlive) //nolint
-		defer responderServer.Close()
-	}
+	//responderAlive := make(chan bool)
+	//if cliOptions.Responder {
+	//	responderServer, err := server.NewResponderServer(serverOptions)
+	//	if err != nil {
+	//		gologger.Fatal().Msgf("Could not create SMB server")
+	//	}
+	//	go responderServer.ListenAndServe(responderAlive) //nolint
+	//	defer responderServer.Close()
+	//}
 
-	smbAlive := make(chan bool)
-	if cliOptions.Smb {
-		smbServer, err := server.NewSMBServer(serverOptions)
-		if err != nil {
-			gologger.Fatal().Msgf("Could not create SMB server")
-		}
-		go smbServer.ListenAndServe(smbAlive) //nolint
-		defer smbServer.Close()
-	}
+	//smbAlive := make(chan bool)
+	//if cliOptions.Smb {
+	//	smbServer, err := server.NewSMBServer(serverOptions)
+	//	if err != nil {
+	//		gologger.Fatal().Msgf("Could not create SMB server")
+	//	}
+	//	go smbServer.ListenAndServe(smbAlive) //nolint
+	//	defer smbServer.Close()
+	//}
 
 	gologger.Info().Msgf("Listening with the following services:\n")
 	go func() {
@@ -228,39 +228,39 @@ func main() {
 				service = "DNS"
 				network = "TCP"
 				port = serverOptions.DnsPort
-			case status = <-httpAlive:
-				service = "HTTP"
-				network = "TCP"
-				port = serverOptions.HttpPort
-				fatal = true
-			case status = <-httpsAlive:
-				service = "HTTPS"
-				network = "TCP"
-				port = serverOptions.HttpsPort
-			case status = <-smtpAlive:
-				service = "SMTP"
-				network = "TCP"
-				port = serverOptions.SmtpPort
-			case status = <-smtpsAlive:
-				service = "SMTPS"
-				network = "TCP"
-				port = serverOptions.SmtpsPort
-			case status = <-ftpAlive:
-				service = "FTP"
-				network = "TCP"
-				port = serverOptions.FtpPort
-			case status = <-responderAlive:
-				service = "Responder"
-				network = "TCP"
-				port = 445
-			case status = <-smbAlive:
-				service = "SMB"
-				network = "TCP"
-				port = serverOptions.SmbPort
-			case status = <-ldapAlive:
-				service = "LDAP"
-				network = "TCP"
-				port = serverOptions.LdapPort
+			//case status = <-httpAlive:
+			//	service = "HTTP"
+			//	network = "TCP"
+			//	port = serverOptions.HttpPort
+			//	fatal = true
+			//case status = <-httpsAlive:
+			//	service = "HTTPS"
+			//	network = "TCP"
+			//	port = serverOptions.HttpsPort
+			//case status = <-smtpAlive:
+			//	service = "SMTP"
+			//	network = "TCP"
+			//	port = serverOptions.SmtpPort
+			//case status = <-smtpsAlive:
+			//	service = "SMTPS"
+			//	network = "TCP"
+			//	port = serverOptions.SmtpsPort
+			//case status = <-ftpAlive:
+			//	service = "FTP"
+			//	network = "TCP"
+			//	port = serverOptions.FtpPort
+			//case status = <-responderAlive:
+			//	service = "Responder"
+			//	network = "TCP"
+			//	port = 445
+			//case status = <-smbAlive:
+			//	service = "SMB"
+			//	network = "TCP"
+			//	port = serverOptions.SmbPort
+			//case status = <-ldapAlive:
+			//	service = "LDAP"
+			//	network = "TCP"
+			//	port = serverOptions.LdapPort
 			}
 			if status {
 				gologger.Silent().Msgf("[%s] Listening on %s %s:%d", service, network, serverOptions.ListenIP, port)
