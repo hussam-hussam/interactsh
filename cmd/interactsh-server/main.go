@@ -86,35 +86,35 @@ func main() {
 	}
 
 	// Requires auth if token is specified or enables it automatically for responder and smb options
-	if serverOptions.Token != "" || cliOptions.Responder || cliOptions.Smb || cliOptions.Ftp || cliOptions.LdapWithFullLogger {
-		serverOptions.Auth = true
-	}
+	//if serverOptions.Token != "" || cliOptions.Responder || cliOptions.Smb || cliOptions.Ftp || cliOptions.LdapWithFullLogger {
+	//	serverOptions.Auth = true
+	//}
 
 	// if root-tld is enabled we enable auth - This ensure that any client has the token
-	if serverOptions.RootTLD {
-		serverOptions.Auth = true
-	}
+	//if serverOptions.RootTLD {
+	//	serverOptions.Auth = true
+	//}
 
 	// of in case a custom token is specified
-	if serverOptions.Token != "" {
-		serverOptions.Auth = true
-	}
+	//if serverOptions.Token != "" {
+	//	serverOptions.Auth = true
+	//}
 
-	if serverOptions.Auth && serverOptions.Token == "" {
-		b := make([]byte, 32)
-		if _, err := rand.Read(b); err != nil {
-			gologger.Fatal().Msgf("Could not generate token\n")
-		}
-		serverOptions.Token = hex.EncodeToString(b)
-		gologger.Info().Msgf("Client Token: %s\n", serverOptions.Token)
-	}
+	//if serverOptions.Auth && serverOptions.Token == "" {
+	//	b := make([]byte, 32)
+	//	if _, err := rand.Read(b); err != nil {
+	//		gologger.Fatal().Msgf("Could not generate token\n")
+	//	}
+	//	serverOptions.Token = hex.EncodeToString(b)
+	//	gologger.Info().Msgf("Client Token: %s\n", serverOptions.Token)
+	//}
 
 	store := storage.New(time.Duration(cliOptions.Eviction) * time.Hour * 24)
 	serverOptions.Storage = store
 
-	if serverOptions.Auth {
-		_ = serverOptions.Storage.SetID(serverOptions.Token)
-	}
+	//if serverOptions.Auth {
+	//	_ = serverOptions.Storage.SetID(serverOptions.Token)
+	//}
 
 	// If riit-tld is enabled create a singleton unencrypted record in the store
 	if serverOptions.RootTLD {
